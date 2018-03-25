@@ -21,7 +21,6 @@ class pmDataCollect():
         self.displayScreen = 0  #for displayMode=1 or 2, 0: pm1, 1: pm25, 2: pm10
 
     def dataInput(self, pmType, dataInsert):
-
         if(pmType == "indoor_pm1"):
             self.indoorPM1.append(dataInsert)
             if(len(self.indoorPM1)>self.numData):

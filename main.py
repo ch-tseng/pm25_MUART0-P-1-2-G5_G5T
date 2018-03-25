@@ -25,18 +25,12 @@ indoor_pm25model = "GT" #You can select G or GT or GTS. (G: only pm2.5, GT: pm2.
 
 sensorRefresh = 15  #This number must be odd number, how many seconds will re-read the sensor data? 
 numData = 46  #How many pm25 data will be displayed on the screen?
-pirSensity = 5  #Sensity for the PIR, large number will delay the PIR sensity
+pirSensity = 3  #Sensity for the PIR, large number will delay the PIR sensity
 
 #you don't have to change the values below
 a_pm1 = [0, 0, 0, 0, 0, 0]
 a_pm25 = [0, 0, 0, 0, 0, 0]
 a_pm10 = [0, 0, 0, 0, 0, 0]
-pm10_a = 0
-pm25_a = 0
-pm100_a = 0
-pm10_b = 0
-pm25_b = 0
-pm100_b = 0
 setVoice = True
 setScreen = 0
 #displayMode = 0  #0(default), 1 (outdoor), 2(indoor)
@@ -74,12 +68,12 @@ dataPM = pmDataCollect(lengthData=numData, debug=False)
 #dataPM.displayScreen = 9  #for displayMode=1 or 2, 0: pm1, 1: pm25, 2: pm10
 
 def readFromUart(delay=0.2):
-    g3 = (air.read("/dev/ttyAMA0"))
+    g3 = (air.read("/dev/ttyS0"))
     #print("try to read second")
     time.sleep(delay)
     #print("try to third second")
     #We only use the second data of reading
-    g3 = (air.read("/dev/ttyAMA0"))
+    g3 = (air.read("/dev/ttyS0"))
 
     try:
         pm1 = g3[3]
@@ -107,11 +101,10 @@ def readFromUart(delay=0.2):
         H = 0
 
 
-    print("TEST:", (pm1, pm10, pm25, T, H))
     return (pm1, pm10, pm25, T, H)
 
 air=G5()
-air.debug = True
+air.debug = False
 i = 0
 while True:
     pirStatus = GPIO.input(pinPIR)
@@ -170,7 +163,7 @@ while True:
         if(dataPM.displayScreen==0):
             lcd.drawLineChart(dataPM.getData("indoor_pm1"), "e1.ttf", "pics/indoor_pm1.jpg")
         elif(dataPM.displayScreen==1):
-            print(dataPM.getData("indoor_pm25"))
+            #print(dataPM.getData("indoor_pm25"))
             lcd.drawLineChart(dataPM.getData("indoor_pm25"), "e1.ttf", "pics/indoor_pm25.jpg")
         elif(dataPM.displayScreen==2):
             lcd.drawLineChart(dataPM.getData("indoor_pm10"), "e1.ttf", "pics/indoor_pm10.jpg")
@@ -181,7 +174,7 @@ while True:
 
         dataPM.voiceFile  = ""
 
-    print(" i={}, i % sensorRefresh={} ".format(i,(i % sensorRefresh)))
+    #print(" i={}, i % sensorRefresh={} ".format(i,(i % sensorRefresh)))
     if(i % sensorRefresh == 0):
         if(i % 2 == 0):
             GPIO.output(pinDevice, GPIO.LOW)
@@ -209,8 +202,8 @@ while True:
             dataPM.dataInput("outdoor_H", round(liveData[4],0))
 
 
-        #print ("time:{} PIR:{} BTN1:{} BTN2:{} device:{} --> pm1:{} pm2.5:{} pm10:{}".format(round(time.time()-lastPlayVoice),\
-        #        pirStatus, btn1, btn2, deviceID, liveData[0], liveData[2], liveData[1]))
+        print ("time:{} PIR:{} BTN1:{} BTN2:{} device:{} --> pm1:{} pm2.5:{} pm10:{}".format(round(time.time()-lastPlayVoice),\
+                pirStatus, btn1, btn2, deviceID, liveData[0], liveData[2], liveData[1]))
 
 
     if(pirStatus==1): 
@@ -221,17 +214,17 @@ while True:
     if(pirAccumulated>pirSensity and i>0 and time.time()-lastPlayVoice>60):
         pirAccumulated = 0
 
-        if(pm25_a<=50):
+        if(liveData[2]<=50):
             wav = 'pm25_1.wav'
-        elif(pm25_a>50 and pm25_a<=100):
+        elif(liveData[2]>50 and liveData[2]<=100):
             wav = 'pm25_2.wav'
-        elif(pm25_a>100 and pm25_a<=150):
+        elif(liveData[2]>100 and liveData[2]<=150):
             wav = 'pm25_3.wav'
-        elif(pm25_a>150 and pm25_a<=200):
+        elif(liveData[2]>150 and liveData[2]<=200):
             wav = 'pm25_4.wav'
-        elif(pm25_a>200 and pm25_a<=300):
+        elif(liveData[2]>200 and liveData[2]<=300):
             wav = 'pm25_5.wav'
-        elif(pm25_a>300):
+        elif(liveData[2]>300):
             wav = 'pm25_6.wav'
 
         if(speaker==True):
